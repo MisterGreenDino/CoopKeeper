@@ -25,6 +25,13 @@
             <version>5.6.1</version>
         </dependency>
 
+        <!-- JSON parsing for the Hypixel API -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
