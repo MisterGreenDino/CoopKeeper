@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package org.bot;
 
 import java.util.List;
@@ -46,7 +41,21 @@ public class Bot {
             throw new IllegalStateException("Guild not found: " + GUILD_ID);
         } else {
             this.wipeAllCommands(guild);
-            List<CommandData> commands = List.of(Commands.slash("reminder", "Create reminder").addOption(OptionType.STRING, "title", "Task title", true).addOption(OptionType.STRING, "interval", "10s / 5m / 2h", true), Commands.slash("reminder_list", "List reminders"), Commands.slash("reminder_delete", "Delete reminder (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true), Commands.slash("reminder_reset", "Reset reminder (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true), Commands.slash("reminder_timer", "Show timer (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true));
+            List<CommandData> commands = List.of(
+                    Commands.slash("reminder", "Create reminder").addOption(OptionType.STRING, "title", "Task title", true).addOption(OptionType.STRING, "interval", "10s / 5m / 2h", true),
+                    Commands.slash("reminder_list", "List reminders"),
+                    Commands.slash("reminder_delete", "Delete reminder (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true),
+                    Commands.slash("reminder_reset", "Reset reminder (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true),
+                    Commands.slash("reminder_timer", "Show timer (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true),
+
+                    Commands.slash("skyblock", "Look up a player's SkyBlock profile").addOption(OptionType.STRING, "username", "Minecraft username", true),
+                    Commands.slash("online", "Check if a player is online on Hypixel").addOption(OptionType.STRING, "username", "Minecraft username", true),
+                    Commands.slash("election", "Show the current SkyBlock mayor and any ongoing election"),
+                    Commands.slash("skillxp", "Show a player's level in one skill")
+                            .addOption(OptionType.STRING, "username", "Minecraft username", true)
+                            .addOption(OptionType.STRING, "skill", "e.g. FARMING, MINING, COMBAT", true),
+                    Commands.slash("darkauction_track", "Announce every Dark Auction start in this channel")
+            );
             guild.updateCommands().addCommands(commands).queue((s) -> System.out.println("Commands synced"), (e) -> System.err.println("Command sync failed: " + e.getMessage()));
         }
     }
