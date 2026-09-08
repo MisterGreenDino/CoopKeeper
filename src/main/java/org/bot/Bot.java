@@ -54,7 +54,9 @@ public class Bot {
                     Commands.slash("skillxp", "Show a player's level in one skill")
                             .addOption(OptionType.STRING, "username", "Minecraft username", true)
                             .addOption(OptionType.STRING, "skill", "e.g. FARMING, MINING, COMBAT", true),
-                    Commands.slash("darkauction_track", "Announce every Dark Auction start in this channel")
+                    Commands.slash("darkauction_track", "Announce every Dark Auction start in this channel"),
+                    Commands.slash("events_track_all", "Announce every known SkyBlock calendar event (Dark Auction, Spooky Festival, New Year, etc.) in this channel"),
+                    Commands.slash("events_upcoming", "Show the next occurrence of every known SkyBlock event")
             );
             guild.updateCommands().addCommands(commands).queue((s) -> System.out.println("Commands synced"), (e) -> System.err.println("Command sync failed: " + e.getMessage()));
         }
