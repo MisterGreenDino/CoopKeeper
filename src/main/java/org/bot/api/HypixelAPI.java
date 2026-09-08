@@ -93,6 +93,11 @@ public final class HypixelAPI {
         return request("/resources/skyblock/election", false);
     }
 
+    /** GET /resources/skyblock/bingo - the current Bingo event and its goals. Public, no key needed. */
+    public static HypixelResponse getSkyblockBingo() {
+        return request("/resources/skyblock/bingo", false);
+    }
+
     /** GET /resources/skyblock/skills - skill XP-per-level tables. Public, no key needed. */
     public static HypixelResponse getSkyblockSkills() {
         return request("/resources/skyblock/skills", false);
