@@ -70,6 +70,32 @@ public class ReminderManager {
         }
     }
 
+    /** Snapshot of every reminder, for {@link org.bot.persistence.Persistence}. */
+    public static java.util.List<org.bot.persistence.BotState.ReminderData> exportState() {
+        java.util.List<org.bot.persistence.BotState.ReminderData> list = new java.util.ArrayList<>();
+        for (Reminder r : byId.values()) {
+            list.add(new org.bot.persistence.BotState.ReminderData(
+                    r.id, r.name, r.title, r.channelId, r.intervalMs, r.nextTrigger.toEpochMilli(), r.waitingAck));
+        }
+        return list;
+    }
+
+    /** Re-registers previously saved reminders exactly as they were, including their next-trigger time. */
+    public static void restore(java.util.List<org.bot.persistence.BotState.ReminderData> saved) {
+        for (org.bot.persistence.BotState.ReminderData d : saved) {
+            Reminder r = new Reminder();
+            r.id = d.id();
+            r.name = d.name();
+            r.title = d.title();
+            r.channelId = d.channelId();
+            r.intervalMs = d.intervalMs();
+            r.nextTrigger = Instant.ofEpochMilli(d.nextTriggerEpochMs());
+            r.waitingAck = d.waitingAck();
+            byId.put(r.id, r);
+            byName.put(r.name, r);
+        }
+    }
+
     public static void ack(String id) {
         Reminder r = (Reminder)byId.get(id);
         if (r != null) {

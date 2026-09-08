@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import org.bot.persistence.Persistence;
 import org.bot.utils.CommandListener;
 
 public class Bot {
@@ -29,6 +31,7 @@ public class Bot {
             }
 
             this.registerCommands();
+            Persistence.load();
             System.out.println("Bot online");
         } else {
             throw new IllegalStateException("DISCORD_TOKEN missing");
@@ -42,21 +45,32 @@ public class Bot {
         } else {
             this.wipeAllCommands(guild);
             List<CommandData> commands = List.of(
-                    Commands.slash("reminder", "Create reminder").addOption(OptionType.STRING, "title", "Task title", true).addOption(OptionType.STRING, "interval", "10s / 5m / 2h", true),
-                    Commands.slash("reminder_list", "List reminders"),
-                    Commands.slash("reminder_delete", "Delete reminder (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true),
-                    Commands.slash("reminder_reset", "Reset reminder (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true),
-                    Commands.slash("reminder_timer", "Show timer (name or id)").addOption(OptionType.STRING, "id", "Name or ID", true),
-
                     Commands.slash("skyblock", "Look up a player's SkyBlock profile").addOption(OptionType.STRING, "username", "Minecraft username", true),
                     Commands.slash("online", "Check if a player is online on Hypixel").addOption(OptionType.STRING, "username", "Minecraft username", true),
                     Commands.slash("election", "Show the current SkyBlock mayor and any ongoing election"),
+                    Commands.slash("election_track", "Keep an auto-updating election panel in this channel"),
+                    Commands.slash("election_untrack", "Stop the auto-updating election panel in this channel"),
                     Commands.slash("skillxp", "Show a player's level in one skill")
                             .addOption(OptionType.STRING, "username", "Minecraft username", true)
                             .addOption(OptionType.STRING, "skill", "e.g. FARMING, MINING, COMBAT", true),
                     Commands.slash("darkauction_track", "Announce every Dark Auction start in this channel"),
-                    Commands.slash("events_track_all", "Announce every known SkyBlock calendar event (Dark Auction, Spooky Festival, New Year, etc.) in this channel"),
-                    Commands.slash("events_upcoming", "Show the next occurrence of every known SkyBlock event")
+                    Commands.slash("darkauction_untrack", "Stop announcing Dark Auctions in this channel"),
+                    Commands.slash("events_track_all", "Announce all known SkyBlock calendar events in this channel"),
+                    Commands.slash("events_untrack_all", "Stop announcing all SkyBlock events in this channel"),
+                    Commands.slash("events_upcoming", "Show the next occurrence of every known SkyBlock event"),
+                    Commands.slash("mayor_track", "Announce it here whenever the SkyBlock mayor changes"),
+                    Commands.slash("mayor_untrack", "Stop announcing mayor changes in this channel"),
+
+                    Commands.slash("reminders", "Open an interactive panel to manage this channel's reminders"),
+
+                    Commands.slash("player_tracker", "Track SkyBlock players' online status in this channel")
+                            .addSubcommands(
+                                    new SubcommandData("add", "Add a player to the tracker")
+                                            .addOption(OptionType.STRING, "username", "Minecraft username", true),
+                                    new SubcommandData("remove", "Remove a player from the tracker")
+                                            .addOption(OptionType.STRING, "username", "Minecraft username", true),
+                                    new SubcommandData("clear", "Stop tracking every player in this channel")
+                            )
             );
             guild.updateCommands().addCommands(commands).queue((s) -> System.out.println("Commands synced"), (e) -> System.err.println("Command sync failed: " + e.getMessage()));
         }

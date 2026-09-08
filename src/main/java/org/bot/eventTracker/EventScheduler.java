@@ -11,7 +11,7 @@ public final class EventScheduler {
     /** Next occurrence after `after`, for any event type. `customPeriodMs` is only used for CUSTOM. */
     public static Instant nextTrigger(EventType type, Instant after, long customPeriodMs) {
         return switch (type.kind) {
-            case FIXED_PERIOD -> SkyBlockCalendar.nextAnchored(after, type.periodMs);
+            case FIXED_PERIOD -> SkyBlockCalendar.nextAnchored(after, type.periodMs, type.anchorOffsetMs);
             case CALENDAR -> SkyBlockCalendar.nextOccurrenceOfDate(after, type.monthIndex, type.startDay);
             case CUSTOM -> SkyBlockCalendar.nextAnchored(after, Math.max(customPeriodMs, 1000L));
         };

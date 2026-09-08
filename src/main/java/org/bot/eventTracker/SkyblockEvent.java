@@ -22,4 +22,12 @@ public class SkyblockEvent {
         this.customPeriodMs = customPeriodMs;
         this.nextTrigger = nextTrigger;
     }
+
+    /** When this occurrence ends, if it's a CALENDAR event with a known duration. Null otherwise. */
+    public Instant endsAt() {
+        if (type.kind == EventType.Kind.CALENDAR && type.durationSkyblockDays > 0) {
+            return nextTrigger.plusMillis(type.durationSkyblockDays * SkyBlockCalendar.DAY_MS);
+        }
+        return null;
+    }
 }

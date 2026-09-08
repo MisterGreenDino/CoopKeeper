@@ -51,7 +51,7 @@ public final class ElectionTracker {
     private static Mayor parseMayor(JsonObject mayorJson) {
         String key = mayorJson.has("key") ? mayorJson.get("key").getAsString() : null;
         String name = mayorJson.has("name") ? mayorJson.get("name").getAsString() : "Unknown";
-        List<String> perks = parsePerkNames(mayorJson.getAsJsonArray("perks"));
+        List<Perk> perks = parsePerks(mayorJson.getAsJsonArray("perks"));
 
         String minister = null;
         JsonObject ministerJson = mayorJson.getAsJsonObject("minister");
@@ -73,7 +73,7 @@ public final class ElectionTracker {
                 String key = c.has("key") ? c.get("key").getAsString() : null;
                 String name = c.has("name") ? c.get("name").getAsString() : "Unknown";
                 int votes = c.has("votes") ? c.get("votes").getAsInt() : 0;
-                List<String> perks = parsePerkNames(c.getAsJsonArray("perks"));
+                List<Perk> perks = parsePerks(c.getAsJsonArray("perks"));
                 candidates.add(new Candidate(key, name, perks, votes));
             }
         }
@@ -81,14 +81,16 @@ public final class ElectionTracker {
         return new Election(year, candidates);
     }
 
-    private static List<String> parsePerkNames(JsonArray perksArray) {
-        List<String> perks = new ArrayList<>();
+    private static List<Perk> parsePerks(JsonArray perksArray) {
+        List<Perk> perks = new ArrayList<>();
         if (perksArray == null) {
             return perks;
         }
         for (JsonElement el : perksArray) {
             JsonObject perk = el.getAsJsonObject();
-            perks.add(perk.has("name") ? perk.get("name").getAsString() : "Unknown perk");
+            String name = perk.has("name") ? perk.get("name").getAsString() : "Unknown perk";
+            String description = perk.has("description") ? perk.get("description").getAsString() : "";
+            perks.add(new Perk(name, description));
         }
         return perks;
     }

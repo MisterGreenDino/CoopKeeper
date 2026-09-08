@@ -2,8 +2,10 @@ package org.bot.eventTracker;
 
 import java.awt.Color;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -13,6 +15,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message.MentionType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.bot.Bot;
+import org.bot.utils.ChannelMessageTracker;
+import org.bot.utils.DiscordTimestamps;
 import org.bot.utils.Log;
 
 /** Tracks recurring SkyBlock events and pings a channel with an embed when each one fires. */
@@ -42,10 +46,11 @@ public final class EventTracker {
 
     /** Registers every known calendar/fixed-period event (everything except CUSTOM) in one channel. */
     public static Collection<SkyblockEvent> trackAll(String channelId) {
+        List<SkyblockEvent> justRegistered = new ArrayList<>();
         for (EventType type : EnumSet.complementOf(EnumSet.of(EventType.CUSTOM))) {
-            track(type, channelId);
+            justRegistered.add(track(type, channelId));
         }
-        return getAll();
+        return justRegistered;
     }
 
     /** Registers a custom recurring event, e.g. a guild-run event, with an arbitrary real-world period. */
@@ -62,6 +67,70 @@ public final class EventTracker {
 
     public static SkyblockEvent remove(String id) {
         return events.remove(id);
+    }
+
+    /** Stops tracking a single known event type in a channel, and cleans up its last announcement. */
+    public static boolean untrack(EventType type, String channelId) {
+        String key = type.name() + ":" + channelId;
+        SkyblockEvent removed = events.remove(key);
+        if (removed == null) {
+            return false;
+        }
+        cleanupMessage(removed);
+        return true;
+    }
+
+    /** Stops tracking every event in a channel (used by /events_untrack_all), cleaning up their messages. */
+    public static int untrackAll(String channelId) {
+        List<String> keysToRemove = new ArrayList<>();
+        for (Map.Entry<String, SkyblockEvent> e : events.entrySet()) {
+            if (e.getValue().channelId.equals(channelId)) {
+                keysToRemove.add(e.getKey());
+            }
+        }
+        for (String key : keysToRemove) {
+            SkyblockEvent removed = events.remove(key);
+            if (removed != null) {
+                cleanupMessage(removed);
+            }
+        }
+        return keysToRemove.size();
+    }
+
+    private static void cleanupMessage(SkyblockEvent event) {
+        String trackerKey = "event:" + event.id;
+        if (Bot.jda != null) {
+            TextChannel channel = Bot.jda.getTextChannelById(event.channelId);
+            if (channel != null) {
+                ChannelMessageTracker.deletePrevious(channel, trackerKey);
+            }
+        }
+        ChannelMessageTracker.forget(trackerKey);
+    }
+
+    /** Snapshot of everything currently tracked, for {@link org.bot.persistence.Persistence}. */
+    public static List<org.bot.persistence.BotState.TrackedEvent> exportState() {
+        List<org.bot.persistence.BotState.TrackedEvent> list = new ArrayList<>();
+        for (SkyblockEvent e : events.values()) {
+            list.add(new org.bot.persistence.BotState.TrackedEvent(e.type.name(), e.channelId, e.label, e.customPeriodMs));
+        }
+        return list;
+    }
+
+    /** Re-registers previously saved events. Next-trigger times are recomputed from now, not restored verbatim. */
+    public static void restore(List<org.bot.persistence.BotState.TrackedEvent> saved) {
+        for (org.bot.persistence.BotState.TrackedEvent p : saved) {
+            try {
+                EventType type = EventType.valueOf(p.type());
+                if (type == EventType.CUSTOM) {
+                    trackCustom(p.label(), p.channelId(), p.customPeriodMs());
+                } else {
+                    track(type, p.channelId());
+                }
+            } catch (Exception e) {
+                Log.warn("Skipped restoring a saved event: " + e.getMessage());
+            }
+        }
     }
 
     private static void tick() {
@@ -89,14 +158,17 @@ public final class EventTracker {
                 .setColor(Color.ORANGE)
                 .setFooter("SkyBlock time: " + SkyBlockCalendar.describe(Instant.now()));
 
-        if (event.type.kind == EventType.Kind.CALENDAR && event.type.durationSkyblockDays > 0) {
-            eb.addField("Duration", event.type.durationSkyblockDays + " SkyBlock day(s) (~" +
-                    (event.type.durationSkyblockDays * SkyBlockCalendar.DAY_MS / 60000) + " real minutes)", false);
+        Instant endsAt = event.endsAt();
+        if (endsAt != null) {
+            eb.addField("Ends", DiscordTimestamps.relativeAndTime(endsAt), false);
         }
+
+        String trackerKey = "event:" + event.id;
+        ChannelMessageTracker.deletePrevious(channel, trackerKey);
 
         channel.sendMessage("@everyone")
                 .setAllowedMentions(EnumSet.of(MentionType.EVERYONE))
                 .setEmbeds(eb.build())
-                .queue();
+                .queue(message -> ChannelMessageTracker.remember(trackerKey, message.getId()));
     }
 }

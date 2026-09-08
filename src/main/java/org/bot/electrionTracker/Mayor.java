@@ -7,10 +7,10 @@ public class Mayor {
 
     public final String key;
     public final String name;
-    public final List<String> perks;
+    public final List<Perk> perks;
     public final String minister; // name of the appointed minister, may be null
 
-    public Mayor(String key, String name, List<String> perks, String minister) {
+    public Mayor(String key, String name, List<Perk> perks, String minister) {
         this.key = key;
         this.name = name;
         this.perks = perks;
