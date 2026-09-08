@@ -20,6 +20,9 @@ import org.bot.electrionTracker.Election;
 import org.bot.electrionTracker.ElectionTracker;
 import org.bot.electrionTracker.Mayor;
 import org.bot.eventTracker.EventTracker;
+import org.bot.eventTracker.EventType;
+import org.bot.eventTracker.SkyBlockCalendar;
+import org.bot.eventTracker.SkyblockEvent;
 import org.bot.onlineChecker.OnlineChecker;
 import org.bot.onlineChecker.OnlineStatus;
 import org.bot.profileChecker.PlayerProfile;
@@ -49,6 +52,8 @@ public class CommandListener extends ListenerAdapter {
             case "election" -> this.handleElection(event);
             case "skillxp" -> this.handleSkillXp(event);
             case "darkauction_track" -> this.handleDarkAuctionTrack(event);
+            case "events_track_all" -> this.handleEventsTrackAll(event);
+            case "events_upcoming" -> this.handleEventsUpcoming(event);
             default -> event.reply("Unknown command").queue();
         }
 
